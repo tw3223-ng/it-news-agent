@@ -1,0 +1,27 @@
+name: Daily IT News Agent
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 毎日8:00 JST（UTC 23:00）
+  workflow_dispatch:        # 手動実行ボタンも追加
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: ライブラリインストール
+        run: |
+          pip install requests beautifulsoup4 pandas openpyxl \
+                      google-generativeai langgraph langchain-google-genai \
+                      lxml
+
+      - name: エージェント実行
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python news_agent.py
