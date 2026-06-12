@@ -12,10 +12,10 @@ from typing import TypedDict
 # ====== APIキー設定（環境変数から取得） ======
 API_KEY = os.environ.get('GEMINI_API_KEY')
 genai.configure(api_key=API_KEY)
-MODEL_NAME = "models/gemini-2.0-flash"
+MODEL_NAME = "models/gemini-2.5-flash-light"
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash-light",
     google_api_key=API_KEY
 )
 
