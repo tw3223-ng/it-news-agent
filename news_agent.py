@@ -158,3 +158,8 @@ result["df_summarized"].to_csv(
     f"news_{current_time}.csv", index=False, encoding="utf-8-sig"
 )
 print(f"📁 CSV保存しました: news_{current_time}.csv")
+
+report_file = f"report_{current_time}.txt"
+with open(report_file, "w", encoding="utf-8") as f:
+    f.write(result["report"])
+print(f"📄 レポート保存しました: {report_file}")
