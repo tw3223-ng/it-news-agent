@@ -31,6 +31,7 @@ jobs:
         with:
           name: news-files
           path: |
-            　news_*.csv
-            　report_*.txt
-          retention-days: 30
+            news_all.csv
+            news_report.txt
+          retention-days: 90
+          overwrite: true
