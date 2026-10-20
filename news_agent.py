@@ -152,14 +152,27 @@ print("\n" + "="*50)
 print(result["report"])
 print("="*50)
 
-# CSV保存（GitHub ActionsではExcelより軽いCSVがおすすめ）
-current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-result["df_summarized"].to_csv(
-    f"news_{current_time}.csv", index=False, encoding="utf-8-sig"
-)
-print(f"📁 CSV保存しました: news_{current_time}.csv")
+import os
 
-report_file = f"report_{current_time}.txt"
-with open(report_file, "w", encoding="utf-8") as f:
+# ファイル名を固定
+csv_file = "news_all.csv"
+report_file = "news_report.txt"
+
+# CSV追記
+df_to_save = result["df_summarized"].copy()
+df_to_save["実行日"] = datetime.datetime.now().strftime("%Y-%m-%d")
+
+if os.path.exists(csv_file):
+    df_to_save.to_csv(csv_file, mode='a', header=False, index=False, encoding="utf-8-sig")
+    print(f"📁 CSVに追記しました: {csv_file}")
+else:
+    df_to_save.to_csv(csv_file, mode='w', header=True, index=False, encoding="utf-8-sig")
+    print(f"📁 CSV新規作成しました: {csv_file}")
+
+# レポート追記
+with open(report_file, "a", encoding="utf-8") as f:
+    f.write(f"\n\n{'='*50}\n")
+    f.write(f"実行日: {datetime.datetime.now().strftime('%Y-%m-%d')}\n")
+    f.write(f"{'='*50}\n")
     f.write(result["report"])
-print(f"📄 レポート保存しました: {report_file}")
+print(f"📄 レポートに追記しました: {report_file}")
