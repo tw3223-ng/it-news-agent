@@ -26,12 +26,19 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python news_agent.py
 
-      - name: ファイルを保存
+      - name: データをGitにコミット
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add news_data.json news_report.txt news_all.csv
+          git diff --staged --quiet || git commit -m "📰 $(date '+%Y-%m-%d') のニュース更新"
+          git push
+
+      - name: ファイルをArtifactsに保存
         uses: actions/upload-artifact@v4
         with:
           name: news-files
           path: |
-            news_data.json
             news_report.txt
             news_all.csv
           retention-days: 30
