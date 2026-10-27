@@ -153,26 +153,57 @@ print(result["report"])
 print("="*50)
 
 import os
+import json
 
 # ファイル名を固定
-csv_file = "news_all.csv"
-report_file = "news_report.txt"
+data_file = "news_data.json"   # 全データの保管場所
+report_file = "news_report.txt"  # 最終出力
 
-# CSV追記
-df_to_save = result["df_summarized"].copy()
-df_to_save["実行日"] = datetime.datetime.now().strftime("%Y-%m-%d")
-
-if os.path.exists(csv_file):
-    df_to_save.to_csv(csv_file, mode='a', header=False, index=False, encoding="utf-8-sig")
-    print(f"📁 CSVに追記しました: {csv_file}")
+# 既存データを読み込む
+if os.path.exists(data_file):
+    with open(data_file, "r", encoding="utf-8") as f:
+        all_data = json.load(f)
 else:
-    df_to_save.to_csv(csv_file, mode='w', header=True, index=False, encoding="utf-8-sig")
-    print(f"📁 CSV新規作成しました: {csv_file}")
+    all_data = {}
 
-# レポート追記
-with open(report_file, "a", encoding="utf-8") as f:
-    f.write(f"\n\n{'='*50}\n")
-    f.write(f"実行日: {datetime.datetime.now().strftime('%Y-%m-%d')}\n")
-    f.write(f"{'='*50}\n")
-    f.write(result["report"])
-print(f"📄 レポートに追記しました: {report_file}")
+# 今日のデータを追加
+today = datetime.datetime.now().strftime("%Y-%m-%d")
+all_data[today] = {
+    "articles": result["df_summarized"].to_dict(orient="records"),
+    "report": result["report"]
+}
+
+# 直近7日分だけ残す
+sorted_keys = sorted(all_data.keys())
+if len(sorted_keys) > 7:
+    for old_key in sorted_keys[:-7]:
+        del all_data[old_key]
+
+# JSONに保存
+with open(data_file, "w", encoding="utf-8") as f:
+    json.dump(all_data, f, ensure_ascii=False, indent=2)
+print(f"📁 データ保存しました（{len(all_data)}日分）")
+
+# 7日分のレポートをまとめてテキストに書き出す
+with open(report_file, "w", encoding="utf-8") as f:
+    f.write(f"# IT日報まとめ（直近{len(all_data)}日分）\n")
+    f.write(f"更新日時: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
+    f.write("="*50 + "\n\n")
+    for date in sorted(all_data.keys(), reverse=True):  # 新しい順
+        f.write(f"\n{'='*50}\n")
+        f.write(f"📅 {date}\n")
+        f.write(f"{'='*50}\n")
+        f.write(all_data[date]["report"])
+        f.write("\n")
+print(f"📄 レポートまとめ出力しました: {report_file}")
+
+# CSVも7日分まとめて出力
+import pandas as pd
+dfs = []
+for date, data in all_data.items():
+    df_day = pd.DataFrame(data["articles"])
+    df_day["実行日"] = date
+    dfs.append(df_day)
+df_all = pd.concat(dfs, ignore_index=True)
+df_all.to_csv("news_all.csv", index=False, encoding="utf-8-sig")
+print(f"📊 CSV出力しました（{len(df_all)}件）")
